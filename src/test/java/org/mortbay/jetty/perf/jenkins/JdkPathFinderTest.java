@@ -33,12 +33,13 @@ public class JdkPathFinderTest
         String pipelineScript
                 = "node {\n" +
                         "  jdkpathfinder nodes:['my-agent'], jdkNames: ['jdk11', 'jdk16']\n" +
-                        "  sh 'cat my-agent-jdk-paths.properties'\n" +
+                        "  sh 'cat my-agent-toolchains.xml'\n" +
                         "}";
         job.setDefinition(new CpsFlowDefinition(pipelineScript, true));
         WorkflowRun completedBuild = jenkins.assertBuildStatusSuccess(job.scheduleBuild2(0));
-        jenkins.assertLogContains("jdk11=/home/foo/jdk11", completedBuild);
-        jenkins.assertLogContains("jdk16=/home/foo/jdk16", completedBuild);
+        jenkins.assertLogContains("<jdkHome>/home/foo/jdk11</jdkHome>", completedBuild);
+        jenkins.assertLogContains("<jdkHome>/home/foo/jdk11</jdkHome>", completedBuild);
+        jenkins.assertLogContains("<type>jdk</type>", completedBuild);
     }
 
 }
