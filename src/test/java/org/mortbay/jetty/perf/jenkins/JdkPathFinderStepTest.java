@@ -13,7 +13,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
-public class JdkPathFinderTest
+import java.util.Arrays;
+
+public class JdkPathFinderStepTest
 {
     @Rule
     public JenkinsRule jenkins = new JenkinsRule();
@@ -23,6 +25,7 @@ public class JdkPathFinderTest
     {
         String agentLabel = "my-agent";
         DumbSlave dumbSlave = jenkins.createOnlineSlave(Label.get(agentLabel));
+        jenkins.jenkins.setJDKs( Arrays.asList(new JDK("jdk11", "/home/foo/jdk11"), new JDK("jdk16", "/home/foo/jdk16")));
         dumbSlave.getNodeProperties()
             .add(new ToolLocationNodeProperty(
                 new ToolLocationNodeProperty.ToolLocation(ExtensionList.lookupSingleton(JDK.DescriptorImpl.class), "jdk11", "/home/foo/jdk11"),
