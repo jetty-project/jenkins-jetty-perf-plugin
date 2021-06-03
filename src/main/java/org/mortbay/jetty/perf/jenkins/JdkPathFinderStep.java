@@ -199,6 +199,10 @@ public class JdkPathFinderStep extends Step
                                             jdkHome.setValue(home + "/Contents/Home");
                                         }
                                     }
+                                    else
+                                    {
+                                        jdkHome.setValue(home);
+                                    }
                                     dom.addChild(jdkHome);
                                     toolchainModel.setConfiguration(dom);
                                     persistedToolchains.addToolchain(toolchainModel);
