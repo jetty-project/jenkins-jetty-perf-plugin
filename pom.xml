@@ -25,7 +25,6 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <!-- Pick up common dependencies for the selected LTS line: https://github.com/jenkinsci/bom#usage -->
         <groupId>io.jenkins.tools.bom</groupId>
         <artifactId>bom-2.277.x</artifactId>
         <version>831.v9814430e6383</version>
