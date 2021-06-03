@@ -6,6 +6,7 @@ import hudson.model.Label;
 import hudson.slaves.DumbSlave;
 import hudson.tools.ToolLocationNodeProperty;
 import jenkins.model.Jenkins;
+import org.apache.commons.lang3.SystemUtils;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
@@ -40,8 +41,16 @@ public class JdkPathFinderStepTest
                         "}";
         job.setDefinition(new CpsFlowDefinition(pipelineScript, true));
         WorkflowRun completedBuild = jenkins.assertBuildStatusSuccess(job.scheduleBuild2(0));
-        jenkins.assertLogContains("<jdkHome>/home/foo/jdk11</jdkHome>", completedBuild);
-        jenkins.assertLogContains("<jdkHome>/home/foo/jdk11</jdkHome>", completedBuild);
+        if (SystemUtils.IS_OS_MAC_OSX )
+        {
+            jenkins.assertLogContains("<jdkHome>/home/foo/jdk11/Contents/Home</jdkHome>", completedBuild);
+            jenkins.assertLogContains("<jdkHome>/home/foo/jdk16/Contents/Home</jdkHome>", completedBuild);
+        }
+        else
+        {
+            jenkins.assertLogContains("<jdkHome>/home/foo/jdk11</jdkHome>", completedBuild);
+            jenkins.assertLogContains("<jdkHome>/home/foo/jdk16</jdkHome>", completedBuild);
+        }
         jenkins.assertLogContains("<type>jdk</type>", completedBuild);
     }
 

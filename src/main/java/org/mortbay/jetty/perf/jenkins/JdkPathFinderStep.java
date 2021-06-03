@@ -13,11 +13,14 @@ import hudson.FilePath;
 import hudson.model.EnvironmentSpecific;
 import hudson.model.Node;
 import hudson.model.TaskListener;
+import hudson.remoting.Callable;
 import hudson.slaves.NodeSpecific;
 import hudson.tools.ToolDescriptor;
 import hudson.tools.ToolInstallation;
 import jenkins.model.Jenkins;
+import jenkins.security.MasterToSlaveCallable;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.SystemUtils;
 import org.apache.maven.toolchain.model.PersistedToolchains;
 import org.apache.maven.toolchain.model.ToolchainModel;
 import org.apache.maven.toolchain.model.io.xpp3.MavenToolchainsXpp3Writer;
@@ -28,6 +31,7 @@ import org.jenkinsci.plugins.workflow.steps.StepContext;
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
 import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution;
+import org.jenkinsci.remoting.RoleChecker;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.slf4j.Logger;
@@ -127,6 +131,26 @@ public class JdkPathFinderStep extends Step
                         node1 -> node1.getLabelString().contains(nodeName)).findFirst().orElse(null);
                 }
 
+                boolean isOsx = false;
+
+                try
+                {
+                    String osName = node.getChannel().call( new MasterToSlaveCallable<String, Throwable>()
+                    {
+                        @Override
+                        public String call()
+                            throws Throwable
+                        {
+                            return System.getProperty("os.name");
+                        }
+                    });
+                    isOsx = StringUtils.startsWith(osName, "Mac") || StringUtils.startsWith(osName, "Mac OS X");
+                }
+                catch (Throwable throwable )
+                {
+                    throwable.printStackTrace();
+                }
+
                 for (String jdkName : step.jdkNames)
                 {
                     for (ToolDescriptor<?> desc : ToolInstallation.all())
@@ -163,7 +187,18 @@ public class JdkPathFinderStep extends Step
                                     toolchainModel.setProvides(provides);
                                     Xpp3Dom dom = new Xpp3Dom("configuration");
                                     Xpp3Dom jdkHome = new Xpp3Dom("jdkHome");
-                                    jdkHome.setValue(home);
+                                    if (isOsx)
+                                    {
+                                        // yup Osx hack
+                                        if (StringUtils.endsWith(home, "/"))
+                                        {
+                                            jdkHome.setValue(home + "Contents/Home");
+                                        }
+                                        else
+                                        {
+                                            jdkHome.setValue(home + "/Contents/Home");
+                                        }
+                                    }
                                     dom.addChild(jdkHome);
                                     toolchainModel.setConfiguration(dom);
                                     persistedToolchains.addToolchain(toolchainModel);
